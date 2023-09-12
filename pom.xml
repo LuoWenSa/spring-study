@@ -5,9 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>spring-ioc</artifactId>
+    <artifactId>spring-study</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>spring-01-ioc</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

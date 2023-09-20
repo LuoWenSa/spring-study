@@ -201,3 +201,52 @@ public class MySpringTest {
 }
 ```
 
+## IOC创建对象的方式
+
+1.使用无参构造创建对象，默认！
+
+2.使用有参构造创建对象
+
+​	1.下标赋值
+
+```xml
+<!--构造器注入-下标方式-->
+<bean id="user" class="com.luo.pojo.User">
+    <constructor-arg index="0" value="xiaoluo"/>
+</bean>
+```
+
+​	2.类型
+
+```xml
+<!--构造器注入-类型方式-->
+<bean id="user" class="com.luo.pojo.User">
+    <constructor-arg type="java.lang.String" value="小罗"/>
+</bean>
+```
+
+​	3.参数名
+
+```xml
+<!--构造器注入-参数名方式-->
+<bean id="user" class="com.luo.pojo.User">
+    <constructor-arg name="name" value="xiaoluo"/>
+</bean>
+```
+
+​	4.引用
+
+```xml
+<beans>
+    <bean id="thingOne" class="x.y.ThingOne">
+        <constructor-arg ref="thingTwo"/>
+        <constructor-arg ref="thingThree"/>
+    </bean>
+
+    <bean id="thingTwo" class="x.y.ThingTwo"/>
+
+    <bean id="thingThree" class="x.y.ThingThree"/>
+</beans>
+```
+
+总结：在配置文件加载的时候，容器中管理的对象就已经初始化了！

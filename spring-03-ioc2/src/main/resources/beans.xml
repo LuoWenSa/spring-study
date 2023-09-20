@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+<!--属性注入-->
+<!--    <bean id ="user" class="com.luo.pojo.User">-->
+<!--        <property name="name" value="小罗"/>-->
+<!--    </bean>-->
+
+<!--构造器注入-下标方式-->
+<!--    <bean id="user" class="com.luo.pojo.User">-->
+<!--        <constructor-arg index="0" value="xiaoluo"/>-->
+<!--    </bean>-->
+
+<!--构造器注入-类型方式-->
+<!--    <bean id="user" class="com.luo.pojo.User">-->
+<!--        <constructor-arg type="java.lang.String" value="小罗"/>-->
+<!--    </bean>-->
+
+<!--构造器注入-参数名方式-->
+    <bean id="user" class="com.luo.pojo.User">
+        <constructor-arg name="name" value="xiaoluo"/>
+    </bean>
+
+    <bean id="userT" class="com.luo.pojo.UserT">
+
+    </bean>
+
+</beans>

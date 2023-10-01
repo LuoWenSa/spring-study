@@ -236,7 +236,7 @@ public class MySpringTest {
 
 ​	4.引用
 
-```xml
+```xml-dtd
 <beans>
     <bean id="thingOne" class="x.y.ThingOne">
         <constructor-arg ref="thingTwo"/>
@@ -250,3 +250,78 @@ public class MySpringTest {
 ```
 
 总结：在配置文件加载的时候，容器中管理的对象就已经初始化了！
+
+## Spring配置
+
+### 1.别名、Bean的配置
+
+本名和别名都可以通过context.getBean获取到实例对象
+
+```xml-dtd
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+<!--构造器注入-参数名方式-->
+    <bean id="user" class="com.luo.pojo.User">
+        <constructor-arg name="name" value="xiaoluo"/>
+    </bean>
+
+    <bean id="userT" class="com.luo.pojo.UserT">
+
+    </bean>
+
+<!-- 取一个别名 alias一般不用-->
+    <alias name="user" alias="userAlias"/> 
+
+</beans>
+```
+
+**常用方式(bean中的name标签)：**
+
+```xml-dtd
+<!--
+    id：bean的唯一标识符，也就是相当于我们学的对象名
+    class：bean对象对应的全限定名：包名 + 类型
+    name：也是别名，而且name，可以同时取多个别名
+-->
+<bean id="userT" class="com.luo.pojo.UserT" name="userT2, u2">
+
+</bean>
+```
+
+### 3.import
+
+这个import，一般用于团队开发使用，他可以将多个配置文件，导入合并为一个
+
+**遇到不同的xml中有相同id的bean，spring会选一个进行加载，不会产生有id的冲突**
+
+```xml-dtd
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <import resource="beans.xml"/>
+    <import resource="beans2.xml"/>
+    <import resource="beans3.xml"/>
+
+</beans>
+```
+
+## 依赖注入(DI)
+
+#### 1.构造器注入（constructor-arg）
+
+前面已经说过了
+
+#### 2.Set方式注入【重点】（property）
+
+
+
+#### 3.拓展方式注入
+
+其他方式。。。

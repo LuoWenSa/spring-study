@@ -23,8 +23,16 @@
         <constructor-arg name="name" value="xiaoluo"/>
     </bean>
 
-    <bean id="userT" class="com.luo.pojo.UserT">
+    <!--
+    id：bean的唯一标识符，也就是相当于我们学的对象名
+    class：bean对象对应的全限定名：包名 + 类型
+    name：也是别名，而且name，可以同时取多个别名
+    -->
+    <bean id="userT" class="com.luo.pojo.UserT" name="userT2, u2;u3">
 
     </bean>
+
+<!-- 取一个别名 -->
+    <alias name="user" alias="userAlias"/>
 
 </beans>

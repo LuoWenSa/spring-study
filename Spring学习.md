@@ -320,8 +320,158 @@ public class MySpringTest {
 
 #### 2.Set方式注入【重点】（property）
 
+- 依赖注入：Set注入！
+
+  <font color = "red">1.依赖：bean对象的创建依赖于容器！</font>
+
+  <font color = "red">2.注入：bean对象中的所有属性，由容器来注入</font>
+
+【环境搭建】
+
+1.复杂类型
+
+```java
+public class Address {
+    private String address;
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+}
+```
+
+2.真实的测试对象
+
+```java
+public class Student {
+    private String name;
+    private Address address;
+    private String[] books;
+    private List<String> hobbies;
+    private Map<String, String> card;
+    private Set<String> games;
+    private String wife;
+    private Properties info;
+}
+```
+
+3.beans.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="student" class="com.luo.pojo.Student">
+        <property name="name" value="lws"/>
+    </bean>
+
+</beans>
+```
+
+4.测试类
+
+```java
+public class MyTest {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        Student student = (Student) context.getBean("student");
+        System.out.println("student = " + student);
+    }
+}
+```
+
+完善注入信息
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="address" class="com.luo.pojo.Address">
+        <property name="address" value="浙江"/>
+    </bean>
+
+    <bean id="student" class="com.luo.pojo.Student">
+        <!--第一种，普通值注入，value-->
+        <property name="name" value="lws"/>
+        <!--第二种，Bean注入，ref-->
+        <property name="address" ref="address"/>
+        <!--第三种，数组-->
+        <property name="books">
+            <array>
+                <value>《红楼梦》</value>
+                <value>《水浒传》</value>
+                <value>《三国演义》</value>
+                <value>《西游记》</value>
+            </array>
+        </property>
+        <!--第四种，List-->
+        <property name="hobbies">
+            <list>
+                <value>听歌</value>
+                <value>跑步</value>
+            </list>
+        </property>
+        <!--第五种，Map-->
+        <property name="card">
+            <map>
+                <entry key="身份证" value="330251568695423658"/>
+                <entry key="银行卡" value="2313654828452"/>
+            </map>
+        </property>
+        <!--第六种，Set-->
+        <property name="games">
+            <set>
+                <value>LOL</value>
+                <value>Assassins Creed</value>
+            </set>
+        </property>
+        <!--第七种，NULL-->
+        <property name="wife">
+            <null/>
+        </property>
+        <!--第八种，-->
+        <property name="info">
+            <props>
+                <prop key="学号">1811010071</prop>
+                <prop key="性别">男</prop>
+            </props>
+        </property>
+    </bean>
+
+</beans>
+```
+
 
 
 #### 3.拓展方式注入
 
-其他方式。。。
+我们可以使用p命名空间和c命名空间进行注入
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:c="http://www.springframework.org/schema/c"  //引入c命名空间
+       xmlns:p="http://www.springframework.org/schema/p"  //引入p命名空间
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--p命名空间注入，可以直接注入属性的值：property-->
+    <bean id="user" class="com.luo.pojo.User" p:name="lws" p:age="18"/>
+    <!--c命名空间注入，可以通过构造器注入属性的值：construct-args-->
+    <bean id="user2" class="com.luo.pojo.User" c:name="xiaoluo" c:age="24"/>
+
+</beans>
+```
+
+<font color = "red">注意点：p命名和c命名空间不能直接使用，需要导入xml约束！</font>

@@ -325,6 +325,8 @@ public class MySpringTest {
   <font color = "red">1.依赖：bean对象的创建依赖于容器！</font>
 
   <font color = "red">2.注入：bean对象中的所有属性，由容器来注入</font>
+  
+  <font color = "red">3.两种注入方式同时作用下，set注入优先级高</font>
 
 【环境搭建】
 
@@ -475,3 +477,81 @@ public class MyTest {
 ```
 
 <font color = "red">注意点：p命名和c命名空间不能直接使用，需要导入xml约束！</font>
+
+### 4.bean的作用域
+
+*Bean 作用域*
+
+| Scope                                                        | Description                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [singleton](https://www.docs4dev.com/docs/zh/spring-framework/5.1.3.RELEASE/reference/core.html#beans-factory-scopes-singleton) | (默认)将每个 Spring IoC 容器的单个 bean 定义范围限定为单个对象实例。 |
+| [prototype](https://www.docs4dev.com/docs/zh/spring-framework/5.1.3.RELEASE/reference/core.html#beans-factory-scopes-prototype) | 将单个 bean 定义的作用域限定为任意数量的对象实例。           |
+| [request](https://www.docs4dev.com/docs/zh/spring-framework/5.1.3.RELEASE/reference/core.html#beans-factory-scopes-request) | 将单个 bean 定义的范围限定为单个 HTTP 请求的生命周期。也就是说，每个 HTTP 请求都有一个在单个 bean 定义后面创建的 bean 实例。仅在可感知网络的 Spring `ApplicationContext`中有效。 |
+| [session](https://www.docs4dev.com/docs/zh/spring-framework/5.1.3.RELEASE/reference/core.html#beans-factory-scopes-session) | 将单个 bean 定义的范围限定为 HTTP `Session`的生命周期。仅在可感知网络的 Spring `ApplicationContext`上下文中有效。 |
+| [application](https://www.docs4dev.com/docs/zh/spring-framework/5.1.3.RELEASE/reference/core.html#beans-factory-scopes-application) | 将单个 bean 定义的范围限定为`ServletContext`的生命周期。仅在可感知网络的 Spring `ApplicationContext`上下文中有效。 |
+| [websocket](https://www.docs4dev.com/docs/zh/spring-framework/5.1.3.RELEASE/reference/web.html#websocket-stomp-websocket-scope) | 将单个 bean 定义的范围限定为`WebSocket`的生命周期。仅在可感知网络的 Spring `ApplicationContext`上下文中有效。 |
+
+4.1 单例模式(Spring默认机制)
+
+```xml
+<!--p命名空间注入，可以直接注入属性的值：property-->
+<bean id="user" class="com.luo.pojo.User" scope="singleton" p:name="lws" p:age="18"/>
+```
+
+4.2 原型模式：**每次从容器中getBean的时候，都会生成一个新对象！**
+
+```xml
+<!--p命名空间注入，可以直接注入属性的值：property-->
+<bean id="user" class="com.luo.pojo.User" scope="prototype" p:name="lws" p:age="18"/>
+```
+
+4.3 其余的request、session、application这些只能在web开发中使用到！
+
+## Bean的自动装配
+
+- 自动装配是Spring满足bean依赖一种方式！
+- Spring会在上下文中自动寻找，并自动给bean装配属性！
+
+
+
+在Spring中有三种装配的方式
+
+​	1.在xml中显式的配置
+
+​	2.在Java中显式的配置
+
+​	**3.隐式的自动装配bean【重要】**
+
+### 1.测试
+
+环境搭建：一个人有两个宠物！
+
+### 2.ByName自动装配
+
+<font color = "red">bean的id不可以不写和乱写，必须保证每个bean的（id）和自己对象set方法后面的名称对应</font>
+
+```xml
+<!--
+   byName: 会自动在容器上下文中查找，和自己对象set方法后面的值对应的bean的（id）！
+-->
+<bean id="people" class="com.luo.pojo.People" autowire="byName">
+    <property name="name" value="luowensa"/>
+</bean>
+```
+
+### 3.ByType自动装配
+
+<font color = "red">bean的id可以不写和乱写，但必须保证每个bean的class唯一不重复</font>
+
+```xml
+<!--bean的id可以不写和乱写，但必须保证每个bean的class唯一不重复-->
+<bean id="cat" class="com.luo.pojo.Cat"/>
+<bean id="doggg" class="com.luo.pojo.Dog"/>
+<!--
+   byType: 会自动在容器上下文中查找，和自己对象属性类型（class）相同的bean！
+-->
+<bean id="people" class="com.luo.pojo.People" autowire="byType">
+    <property name="name" value="luowensa"/>
+</bean>
+```
+

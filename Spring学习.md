@@ -555,3 +555,183 @@ public class MyTest {
 </bean>
 ```
 
+### 4.使用注解实现自动装配
+
+jdk1.5支持的注解，Spring2.5就支持注解了！
+
+1.导入约束：context约束
+
+==2.配置注解支持：<<context:annotation-config/>>==
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+</beans>
+```
+
+#### @Autowired
+
+<font color = "red">先按**类型(Type)**查找，如果找不到的话就按**名字(id)**查找</font>
+
+直接在属性上使用即可！（也可以在set方法上加）
+
+使用注解可以删除掉类中set方法，因为注解是通过反射作用的，前提是你这个自动装配的属性在IOC（Spring）容器中存在，且符合类型ByType！
+
+科普：
+
+```xml
+@Nullable  字段标记了这个注解，说明这个字段可以为null；
+```
+
+```java
+public @interface Autowired {
+    boolean required() default true;
+}
+```
+
+测试代码
+
+```java
+public class People {
+
+    //如果显式定义了Autowired的required属性为false，说明这个对象可以为null，否则不允许为null
+    @Autowired(required = false)
+    private Cat cat;
+    @Autowired
+    private Dog dog;
+    private String name;
+}
+```
+
+如果@Autowired自动装配的环境比较复杂，自动装配无法通过一个注解【@Autowired】完成的时候、我们可以使用@Qualifier(value="xxx")去配置@Autowired的使用，指定一个唯一的bean对象注入！
+
+```java
+public class People {
+
+    //如果显式定义了Autowired的required属性为false，说明这个对象可以为null，否则不允许为null
+    @Autowired
+    @Qualifier(value="cat1")
+    private Cat cat;
+    @Autowired
+    private Dog dog;
+    private String name;
+}
+```
+
+#### @Resource
+
+<font color = "red">先按**名字(id)**查找，如果找不到的话就按**类型(Type)**查找</font>
+
+```java
+public class People {
+
+    @Resource(name = "cat1")
+    private Cat cat;
+    @Resource
+    private Dog dog;
+    private String name;
+}
+```
+
+## 使用注解开发
+
+- 在Spring4之后，要使用注解开发，必须要保证AOP的包导入了
+
+  Maven:org.springframework:spring-aop:5.3.18
+
+- 使用注解需要导入context约束，增加注解的支持！
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <beans xmlns="http://www.springframework.org/schema/beans"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:context="http://www.springframework.org/schema/context"
+         xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans.xsd
+          http://www.springframework.org/schema/context
+          http://www.springframework.org/schema/context/spring-context.xsd">
+  
+      <context:annotation-config/>
+  
+  
+  </beans>
+  ```
+
+1.bean
+
+2.属性如何注入
+
+```java
+@Component
+public class User {
+
+    //相当于 <property name="name" value="罗文飒"/>
+    @Value("罗文飒")
+    public String name;
+
+//    @Value("罗文飒")
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+```
+
+3.衍生的注解
+
+@Component有几个衍生注解，我们在web开发中，会按照mvc三层架构分层！
+
+- dao【@Repository】
+
+- service【@Service】
+
+- controller【@Controller】
+
+  这四个注解功能都是一样的，都是代表将某个类注册到Spring中，装配Bean
+
+4.自动装配置
+
+```java
+@Autowired
+@Qualifier(value="cat1")
+@Nullable //字段标记了这个注解，说明这个字段可以为null
+@Resource
+```
+
+5.作用域
+
+```java
+@Scope("singleton") //singleton单例，prototype原型
+```
+
+6.小结
+
+​	xml与注解：
+
+- xml更加万能，适用于任何场合！维护简单方便
+- 注解 不是自己的类使用不了，维护相对复杂！
+
+​    xml与注解的最佳实践：
+
+- xml用来管理bean；
+
+- 注解只负责完成属性的注入；
+
+- 我们在使用的过程中，只需要注意一个问题：必须让注解生效，就需要开启注解的支持
+
+  ```xml
+  <!--指定要扫描的包，该注解告诉Spring扫描那些包路径下的类，然后判断如果类使用了@Component,@Controller, @Service...等注解，就注入到Spring容器中。-->
+  <context:component-scan base-package="com.luo"/>
+  <!--注解驱动的支持-->
+  <context:annotation-config/>
+  ```
+
+  

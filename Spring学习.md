@@ -734,4 +734,79 @@ public class User {
   <context:annotation-config/>
   ```
 
-  
+
+## 使用Java的方式配置Spring
+
+我们现在要完全不使用Spring的xml配置了，全权交给Java来做！
+
+JavaConfig是Spring的一个子项目，在Spring4之后，它成为了一个核心功能！
+
+**实体类**
+
+```java
+//这里这个注解的意思，就是说明这个类被Spring接管了，被component-scan扫描到后，就会注册到了容器中
+@Component
+public class User {
+
+    @Value("luowensa") //属性注入值
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "name='" + name + '\'' +
+                '}';
+    }
+}
+```
+
+**配置文件**
+
+```java
+package com.luo.config;
+
+import com.luo.pojo.User;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+
+// 这个也会Spring容器托管，注册到容器中，因为他本来就是一个@Component
+// @Configuration代表这是一个配置类，就和我们之前看的beans.xml
+@Configuration
+@ComponentScan("com.luo.pojo")
+@Import(LuoConfig2.class)
+public class LuoConfig {
+
+    // 注册一个bean，就相当于我们之前写的一个bean标签
+    // 这个方法的名字，就相当于bean标签中的id属性
+    // 这个方法的返回值，就相当于bean标签中的class属性
+    @Bean
+    public User getUser(){
+        return new User(); //就是返回要注入到bean的对象！
+    }
+}
+```
+
+**测试类**
+
+```java
+public class MyTest {
+    public static void main(String[] args) {
+        //如果完全使用了配置类方式去做，我们就只能通过AnnotationConfig上下文(AnnotationConfigApplicationContext)来获取容器，通过配置类的class对象加载！
+        ApplicationContext context = new AnnotationConfigApplicationContext(LuoConfig.class);
+        User user = (User) context.getBean("getUser");
+        System.out.println("user.getName() = " + user.getName());
+    }
+}
+```
+
+这种纯Java的配置方式，在SpringBoot中随处可见！

@@ -482,3 +482,280 @@ public class AnnotationPointCut {
 }
 ```
 
+# 12、整合Mybatis
+
+步骤：
+
+​	1.导入相关jar包
+
+- junit
+- mybatis
+- mysql数据库
+- spring相关的
+- aop织入
+- mybatis-spring【new】
+
+| MyBatis-Spring | MyBatis | Spring 框架 | Spring Batch | Java    |
+| -------------- | ------- | ----------- | ------------ | ------- |
+| 2.0            | 3.5+    | 5.0+        | 4.0+         | Java 8+ |
+| 1.3            | 3.4+    | 3.2.2+      | 2.1+         | Java 6+ |
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.13.2</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.47</version>
+    </dependency>
+    <dependency>
+        <groupId>org.mybatis</groupId>
+        <artifactId>mybatis</artifactId>
+        <version>3.5.3</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-webmvc</artifactId>
+        <version>5.1.17.RELEASE</version>
+    </dependency>
+    <!--Spring操作数据库的话，还需要一个Spring-jdbc-->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-jdbc</artifactId>
+        <version>5.1.17.RELEASE</version>
+    </dependency>
+    <dependency>
+        <groupId>org.aspectj</groupId>
+        <artifactId>aspectjweaver</artifactId>
+        <version>1.9.1</version>
+    </dependency>
+    <dependency>
+        <groupId>org.mybatis</groupId>
+        <artifactId>mybatis-spring</artifactId>
+        <version>2.0.3</version>
+    </dependency>
+</dependencies>
+```
+
+​	2.编写配置文件
+
+​	3.测试
+
+## 12.2 Mybatis-Spring
+
+
+
+1.编写数据源配置
+
+```xml
+<!--DataSource:使用Spring的数据源替换Mybatis的配置 c3p0 dbcp druid
+    我们这里使用Spring提供的JDBC：org.springframework.jdbc.datasource
+    -->
+<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+    <property name="url" value="jdbc:mysql://localhost:3306/mybatis?useSSL=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Shanghai"/>
+    <property name="username" value="root"/>
+    <property name="password" value="123"/>
+</bean>
+```
+
+2.sqlSessionFactory
+
+```xml
+<!--SqlSessionFactory-->
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    <property name="dataSource" ref="dataSource" />
+    <!--绑定Mybatis配置文件-->
+    <property name="configLocation" value="classpath:mybatis-config.xml"/>
+    <!--绑定Mapper接口文件位置-->
+    <property name="mapperLocations" value="classpath:com/luo/mapper/*.xml"/>
+</bean>
+```
+
+3.sqlSessionTemplate
+
+```xml
+<!--SqlSessionTemplate：就是我们使用的sqlSession-->
+<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+    <!--只能使用构造器注入sqlSessionFactory，因为它没有set方法-->
+    <constructor-arg index="0" ref="sqlSessionFactory"/>
+</bean>
+```
+
+4.需要给接口加实现类【】
+
+```java
+public class UserMapperImpl implements UserMapper{
+
+    //我们的所有操作，都使用sqlSession来执行，在原来，现在都使用SqlSessionTemplate;
+    private SqlSessionTemplate sqlSession;
+
+    public void setSqlSession(SqlSessionTemplate sqlSession) {
+        this.sqlSession = sqlSession;
+    }
+
+    @Override
+    public List<User> selectUsers() {
+        UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+        return userMapper.selectUsers();
+    }
+}
+-----------------------------------------------------------------------------
+//使用SqlSessionDaoSupport
+//1.继承SqlSessionDaoSupport
+public class UserMapperImpl2 extends SqlSessionDaoSupport implements UserMapper {
+    @Override
+    public List<User> selectUsers() {
+        return getSqlSession().getMapper(UserMapper.class).selectUsers();
+    }
+}
+//2.写applicationContext.xml
+<bean id="userMapper2" class="com.luo.mapper.UserMapperImpl2">
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+</bean>
+```
+
+5.将自己写的实现类，注入到Spring中
+
+```xml
+<bean id="userMapper" class="com.luo.mapper.UserMapperImpl">
+    <property name="sqlSession" ref="sqlSession"/>
+</bean>
+```
+
+6.测试使用即可
+
+```java
+@Test
+public void test2(){
+    ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
+    UserMapper userMapper = applicationContext.getBean("userMapper",UserMapper.class);
+
+    List<User> userList = userMapper.selectUsers();
+    System.out.println("userList = " + userList);
+}
+```
+
+# 13、声明式事务
+
+## 13.1 回顾事务
+
+- 把一组业务当成一个业务来做；要么都成功，要么都失败！
+- 事务在项目开发中，十分重要，涉及到数据的一致性问题，不能马虎！
+- 确保完整性和一致性；
+
+
+
+事务的ACID原则：
+
+- 原子性
+- 一致性
+  - 事务完成时，数据必须是一致的，也就是说，和事务开始之前，数据存储中的数据处于一致状态，保证数据的无损。以转账为例，假设用户A和用户B两者的钱加起来一共是5000，那么不管A和B之间如何转账，转几次账，事务结束后两个用户的钱相加起来应该还是5000，这就是事务的一致性。
+- 隔离性
+  - 多个业务可能操作同一个资源，防止数据损坏
+  - 隔离性是指事务与事务之间互相独立，彼此隔离。当多个用户并发访问数据库时，如操作同一张表，数据库为每一个用户开启的事务，不能被其他事务的操作所干扰。**对于任意两个并发的事务T1和T2，在事务T1看来，T2要么在T1开始之前就已经结束，要么在T1结束之后才开始，这样每个事务都感觉不到有其他事务在并发地执行。**
+
+- 持久性
+  - 事务一旦提交，无论系统发生什么问题，结果都不会再被影响，被持久化地写到存储器中！
+
+## 13.2 Spring中的事务管理
+
+- 声明式事务：AOP
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+
+    <!--配置声明式事务-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <constructor-arg ref="dataSource" />
+    </bean>
+    
+        <!--开启注解支持  @Transactional-->
+<!--    <tx:annotation-driven transaction-manager="transactionManager"/>-->
+
+    <!--结合AOP实现事务的织入-->
+    <!--配置事务通知：-->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <!--给哪些方法配置事务-->
+        <!--配置事务的传播特性：new  propagation= "REQUIRED" (默认)-->
+        <tx:attributes>
+            <tx:method name="add" propagation="REQUIRED"/>
+            <tx:method name="delete" propagation="REQUIRED"/>
+            <tx:method name="delete" propagation="REQUIRED"/>
+            <tx:method name="query" read-only="true"/>
+            <tx:method name="*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <!--配置事务切入-->
+    <aop:config>
+        <aop:pointcut id="txPointCut" expression="execution(* com.luo.mapper.*.*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCut"/>
+    </aop:config>
+
+</beans>
+```
+
+```java
+public class UserMapperImpl extends SqlSessionDaoSupport implements UserMapper{
+
+    @Override
+    public List<User> selectUsers() {
+        return getSqlSession().getMapper(UserMapper.class).selectUsers();
+    }
+
+    @Override
+    public int addUser(User user) {
+        return getSqlSession().getMapper(UserMapper.class).addUser(user);
+    }
+
+    @Override
+    public int deleteUser(int id) {
+        return getSqlSession().getMapper(UserMapper.class).deleteUser(id);
+    }
+
+    @Override
+    public int test(User user, int id) {
+        addUser(user);
+        deleteUser(id);
+        return 0;
+    }
+
+}
+```
+
+```java
+@Test
+public void test2(){
+    ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
+    UserMapper userMapper = applicationContext.getBean("userMapper", UserMapper.class);
+
+    User user = new User(6,"汪汪", "611");
+
+    //        //增加用户
+    //        userMapper.addUser(user);
+    //        //删除用户一定会报错，测试事务
+    //        userMapper.deleteUser(6);
+    userMapper.test(user,1);
+}
+```
+
+- 编程式事务：需要在代码中(try-catch)，进行事务的管理

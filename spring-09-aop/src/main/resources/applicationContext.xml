@@ -17,7 +17,7 @@
 
     <!--注册Bean-->
     <bean id="userService" class="com.luo.service.UserServiceImpl"/>
-    <bean id="log" class="com.luo.log.Log"/>
+    <bean id="log" class="com.luo.log.beforeLog"/>
     <bean id="afterLog" class="com.luo.log.AfterLog"/>
 
     <!--方式三：使用注解实现-->
